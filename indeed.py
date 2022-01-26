@@ -2,13 +2,15 @@ import requests as req
 from bs4 import BeautifulSoup
 
 LIMIT = 50
-URL = f"https://kr.indeed.com/jobs?q=python&limit={LIMIT}"
+URL = f"https://kr.indeed.com/jobs"
 
+# 마지막 페이지 구하는 함수
+# 파싱한 결과에서 데이터 추출하는 함수
 
 # 스크래핑한 페이지들의 마지막 페이지를 리턴하는 함수
-def extract_indeed_pages():
+def get_last_page(keyword):
     # 'python'에 대한 검색결과 1페이지당 50개씩
-    res = req.get(URL)
+    res = req.get(f"{URL}?q={keyword}&limit={LIMIT}")
 
     indeed_soup = BeautifulSoup(res.text, 'html.parser')
     pagination = indeed_soup.find("div", {"class": "pagination"})
@@ -25,11 +27,10 @@ def extract_indeed_pages():
     return max_page
 
 
-def extract_job(html):
+def get_job(html):
     # span 태그의 title 속성의 경우 제목이 들어가기에 값을 가져올려면 title 속성이 있는 것만 가져와서 string만 가져오는 식으로
     title = html.find("span", {"title": True}).string
     # 인디드는 타이틀에 회사이름이 안 들어가 있는 경우도 있고, 중복된 타이틀도 있어서 회사명도 스크래핑함
-    print(title)
     company = html.find("span", {"class" : "companyName"})
     # span 태그 안에 a 태그가 있는 경우도 있어서 조건을 나눔
     # 또한 회사이름이 없는 것도 있어서 그 부분 조건도 추가
@@ -44,7 +45,7 @@ def extract_job(html):
         elif company is not None:
             company = str(company.string)
     else: # 회사 이름이 존재하지 않을 시 빈 문자열의 값을 할당했다.
-        company = ""
+        company = None
     location = html.find("div", {"class" : "companyLocation"}).string
     job_id = html["data-jk"]
     return {
@@ -56,11 +57,11 @@ def extract_job(html):
 
 
 # 검색한 결과의 페이지에서 회사와 일자리 추출하는 함수
-def extract_indeed_jobs(last_page):
+def get_jobs_indeed(last_page, keyword):
     jobs = []
     for page in range(last_page):
         # print(f"Scrapping page: {page}")
-        res = req.get(f"{URL}&start={page * LIMIT}")
+        res = req.get(f"{URL}?q={keyword}&limit={LIMIT}&start={page * LIMIT}")
         soup = BeautifulSoup(res.text, "html.parser")
         # 파싱한 정보에서 일자리 정보 가져오기
         get_job_info = soup.find("div", {"id": "mosaic-provider-jobcards"})
@@ -68,5 +69,11 @@ def extract_indeed_jobs(last_page):
         infos = get_job_info.find_all("a", {"class" : "resultWithShelf"})
         # 일자리 정보가 담긴 배열을 순회하면서 정보를 가져오고 jobs 배열에 추가 후 리턴
         for info in infos:
-            jobs.append(extract_job(info))
+            jobs.append(get_job(info))
+    return jobs
+
+
+def get_jobs(keyword):
+    last_page = get_last_page(keyword)
+    jobs = get_jobs_indeed(last_page,keyword)
     return jobs

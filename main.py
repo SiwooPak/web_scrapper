@@ -1,7 +1,8 @@
-from indeed import extract_indeed_pages, extract_indeed_jobs
+from indeed import get_jobs as get_indeed_jobs
+from wanted import get_jobs_wanted
 
-
-last_indeed_page = extract_indeed_pages()
-indeed_jobs = extract_indeed_jobs(last_indeed_page)
-
+keyword = "python"
+indeed_jobs = get_indeed_jobs(keyword)
+# print(parsing_wanted())
+print(get_jobs_wanted())
 
