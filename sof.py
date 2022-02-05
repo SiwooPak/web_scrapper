@@ -15,12 +15,21 @@ def get_last_page():
 
 def extract_job(html):
     title = html.find("h2", {"class":"fs-body3"}).find("a")["title"]
-    company = html.find("h3", {"class": "fs-body1"}).find("span", {"class": "fc-black-500"}).text
-    return { "title": title, "company": company }
+    company = html.find("h3", {"class": "fs-body1"}).find("span").get_text(strip=True)
+    location = html.find("h3", {"class": "fs-body1"}).find("span", {"class": "fc-black-500"}).get_text(strip=True)
+    job_id = html["data-jobid"]
+    return {
+        "title": title,
+        "company": company,
+        "location": location,
+        "link": f"https://stackoverflow.com/jobs/{job_id}"
+    }
+
 
 def extract_jobs(last_page):
     jobs = []
     for page in range(last_page):
+        print(f"Scrapping SOF: Page: {page}")
         result = req.get(f"{URL}&pg={page+1}")
         soup = BeautifulSoup(result.text, "html.parser")
         results = soup.find_all("div", {"class": "-job"})
@@ -33,4 +42,4 @@ def extract_jobs(last_page):
 def get_jobs():
     last_page = get_last_page()
     jobs = extract_jobs(last_page)
-    return []
+    return jobs

@@ -60,7 +60,7 @@ def get_job(html):
 def get_jobs_indeed(last_page, keyword):
     jobs = []
     for page in range(last_page):
-        # print(f"Scrapping page: {page}")
+        print(f"Scrapping Indeed Page: {page}")
         res = req.get(f"{URL}?q={keyword}&limit={LIMIT}&start={page * LIMIT}")
         soup = BeautifulSoup(res.text, "html.parser")
         # 파싱한 정보에서 일자리 정보 가져오기
